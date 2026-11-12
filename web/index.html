@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Radar Berita Dunia</title>
+<meta name="description" content="Berita luar negeri terbaru: saham & ekonomi, cuaca & wabah, teknologi. Diperbarui saat dipicu.">
+<meta name="theme-color" content="#f9f9f7" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#0d0d0d" media="(prefers-color-scheme: dark)">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🌐</text></svg>">
+<style>
+:root{
+  --page:#f9f9f7;--surface:#fcfcfb;--card:#ffffff;
+  --ink:#0b0b0b;--ink2:#52514e;--muted:#898781;
+  --line:#e1e0d9;--base:#c3c2b7;--ring:rgba(11,11,11,.10);
+  --accent:#2a78d6;
+  --t-ekonomi:#2a78d6;--t-cuaca:#eb6834;--t-teknologi:#1baf7a;--t-lainnya:#898781;
+  --good:#0ca30c;--good-ink:#006300;--crit:#d03b3b;--warn:#fab219;
+  --radius:14px;
+}
+@media (prefers-color-scheme:dark){:root{
+  --page:#0d0d0d;--surface:#1a1a19;--card:#1a1a19;
+  --ink:#f0efec;--ink2:#c3c2b7;--muted:#898781;
+  --line:#2c2c2a;--base:#383835;--ring:rgba(255,255,255,.10);
+  --accent:#3987e5;
+  --t-ekonomi:#3987e5;--t-cuaca:#d95926;--t-teknologi:#199e70;--t-lainnya:#898781;
+  --good:#0ca30c;--good-ink:#0ca30c;--crit:#e66767;
+}}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--page);color:var(--ink);font:15px/1.45 system-ui,-apple-system,"Segoe UI",Roboto,"Helvetica Neue",Arial,sans-serif;
+  padding-bottom:calc(72px + env(safe-area-inset-bottom))}
+a{color:inherit}
+button,input,select{font:inherit;color:inherit}
+.wrap{max-width:980px;margin:0 auto;padding:0 14px}
+
+/* header */
+header{position:sticky;top:0;z-index:20;background:color-mix(in srgb,var(--page) 92%,transparent);
+  backdrop-filter:saturate(1.4) blur(10px);-webkit-backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
+.hd{display:flex;align-items:center;gap:10px;padding:10px 0}
+.hd h1{font-size:17px;margin:0;font-weight:700;letter-spacing:-.01em}
+.hd .upd{font-size:12px;color:var(--muted);margin-left:auto;text-align:right}
+.iconbtn{border:1px solid var(--line);background:var(--card);border-radius:10px;width:36px;height:36px;display:grid;place-items:center;cursor:pointer;flex:none}
+.iconbtn:active{transform:scale(.96)}
+.iconbtn.spin svg{animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* tabs: bottom bar on phone, top on desktop */
+nav.tabs{position:fixed;left:0;right:0;bottom:0;z-index:30;display:flex;background:var(--card);border-top:1px solid var(--line);
+  padding-bottom:env(safe-area-inset-bottom)}
+nav.tabs button{flex:1;border:0;background:none;padding:9px 4px 8px;display:flex;flex-direction:column;align-items:center;gap:2px;
+  font-size:12px;color:var(--muted);cursor:pointer}
+nav.tabs button svg{width:22px;height:22px}
+nav.tabs button[aria-selected=true]{color:var(--accent);font-weight:600}
+@media (min-width:760px){
+  body{padding-bottom:24px}
+  nav.tabs{position:static;border:0;background:none;padding:0;gap:6px;justify-content:flex-start}
+  nav.tabs button{flex:none;flex-direction:row;font-size:14px;padding:8px 14px;border-radius:999px;gap:8px}
+  nav.tabs button svg{width:18px;height:18px}
+  nav.tabs button[aria-selected=true]{background:color-mix(in srgb,var(--accent) 12%,transparent)}
+  .tabrow{padding:10px 0 0}
+}
+
+/* filters */
+.filters{padding:12px 0 6px;display:grid;gap:10px}
+.search{display:flex;align-items:center;gap:8px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:0 12px}
+.search input{border:0;background:none;outline:none;padding:10px 0;width:100%;font-size:16px}
+.chips{display:flex;gap:8px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.chips::-webkit-scrollbar{display:none}
+.chip{flex:none;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:6px 12px;font-size:13.5px;cursor:pointer;
+  display:inline-flex;align-items:center;gap:6px;white-space:nowrap;color:var(--ink2)}
+.chip .dot{width:9px;height:9px;border-radius:50%}
+.chip .n{color:var(--muted);font-variant-numeric:tabular-nums;font-size:12px}
+.chip[aria-pressed=true]{border-color:var(--ink);color:var(--ink);font-weight:600}
+.chip.small{padding:4px 10px;font-size:12.5px}
+.row{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+select.sel{border:1px solid var(--line);background:var(--card);border-radius:10px;padding:6px 10px;font-size:13.5px;max-width:100%}
+label.tog{display:inline-flex;align-items:center;gap:6px;font-size:13.5px;color:var(--ink2);cursor:pointer}
+.activef{display:inline-flex;align-items:center;gap:6px;background:color-mix(in srgb,var(--accent) 12%,transparent);color:var(--ink);
+  border-radius:999px;padding:4px 6px 4px 12px;font-size:13px}
+.activef button{border:0;background:none;cursor:pointer;font-size:16px;line-height:1;padding:0 4px;color:var(--ink2)}
+.count{font-size:13px;color:var(--muted);padding:2px 0 8px}
+
+/* cards */
+.list{display:grid;gap:10px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px;position:relative;overflow:hidden}
+.card::before{content:"";position:absolute;left:0;top:0;bottom:0;width:4px;background:var(--tc,var(--t-lainnya))}
+.meta{font-size:12.5px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 6px;align-items:center}
+.meta .src{color:var(--ink2);font-weight:600}
+.typ{font-size:11px;border:1px solid var(--line);border-radius:6px;padding:0 6px;color:var(--ink2)}
+.card h3{margin:5px 0 4px;font-size:16px;line-height:1.35;font-weight:650}
+.card h3 a{text-decoration:none}
+.card h3 a:hover{text-decoration:underline}
+.sum{margin:0 0 6px;color:var(--ink2);font-size:14px}
+.tags{display:flex;flex-wrap:wrap;gap:6px;align-items:center;margin-top:6px}
+.topic{font-size:12px;font-weight:600;border-radius:999px;padding:2px 9px;display:inline-flex;align-items:center;gap:5px;
+  border:1px solid var(--line);color:var(--ink)}
+.topic .dot{width:8px;height:8px;border-radius:50%}
+.tag{font-size:12px;color:var(--ink2);background:color-mix(in srgb,var(--ink) 6%,transparent);border-radius:6px;padding:2px 7px}
+.badge{font-size:12px;border-radius:6px;padding:2px 7px;display:inline-flex;gap:4px;align-items:center}
+.badge.ok{color:var(--good-ink);background:color-mix(in srgb,var(--good) 14%,transparent)}
+.badge.warn{color:var(--ink);background:color-mix(in srgb,var(--warn) 28%,transparent)}
+.also{font-size:12.5px;color:var(--muted);margin-top:6px}
+.extl{font-size:12.5px;color:var(--accent);text-decoration:none;margin-left:2px}
+.more{display:block;margin:14px auto 4px;border:1px solid var(--line);background:var(--card);border-radius:999px;padding:9px 18px;cursor:pointer}
+.empty{padding:40px 10px;text-align:center;color:var(--muted)}
+
+/* stats */
+.sec{margin:16px 0 0}
+.sec h2{font-size:15px;margin:0 0 10px;font-weight:700}
+.sec .sub{font-size:12.5px;color:var(--muted);margin:-6px 0 10px}
+.tiles{display:grid;grid-template-columns:repeat(2,1fr);gap:10px;margin-top:12px}
+@media (min-width:760px){.tiles{grid-template-columns:repeat(4,1fr)}}
+.tile{background:var(--card);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+.tile .k{font-size:12.5px;color:var(--ink2)}
+.tile .v{font-size:26px;font-weight:700;font-variant-numeric:tabular-nums;letter-spacing:-.02em;margin-top:2px}
+.tile .s{font-size:12px;color:var(--muted)}
+.panel{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:12px 14px}
+.bars{display:grid;gap:9px}
+.bar{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:3px 10px;align-items:center}
+.bar .lbl{font-size:13.5px;display:flex;gap:6px;align-items:center;min-width:0}
+.bar .lbl span.name{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.bar .val{font-size:13px;font-variant-numeric:tabular-nums;color:var(--ink2);text-align:right}
+.bar .track{grid-column:1/-1;height:8px;background:transparent;border-radius:0 4px 4px 0;position:relative;border-left:1px solid var(--base)}
+.bar .fill{height:100%;border-radius:0 4px 4px 0;background:var(--accent);min-width:2px}
+.bar.click{cursor:pointer;border-radius:8px;margin:-4px -6px;padding:4px 6px}
+.bar.click:hover{background:color-mix(in srgb,var(--ink) 5%,transparent)}
+.st{font-size:12px;display:inline-flex;align-items:center;gap:3px;flex:none}
+.st.ok{color:var(--good-ink)} .st.err{color:var(--crit)}
+.grp{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.04em;margin:12px 0 6px}
+.grp:first-child{margin-top:0}
+.hist{display:flex;align-items:flex-end;gap:2px;height:90px;border-bottom:1px solid var(--base);position:relative}
+.hist div{flex:1;background:var(--accent);border-radius:3px 3px 0 0;min-height:1px;position:relative}
+.hist div:hover{opacity:.75}
+.hlab{display:flex;justify-content:space-between;font-size:11.5px;color:var(--muted);margin-top:4px}
+.tip{position:fixed;z-index:50;pointer-events:none;background:var(--card);color:var(--ink);border:1px solid var(--line);
+  box-shadow:0 4px 16px rgba(0,0,0,.12);border-radius:8px;padding:6px 9px;font-size:12.5px;display:none;max-width:240px}
+table.t{width:100%;border-collapse:collapse;font-size:13px}
+table.t th,table.t td{text-align:left;padding:7px 6px;border-bottom:1px solid var(--line);vertical-align:top}
+table.t th{color:var(--muted);font-weight:600;font-size:12px}
+table.t td.n{text-align:right;font-variant-numeric:tabular-nums}
+details.tbl summary{cursor:pointer;font-size:13.5px;color:var(--accent);margin-top:10px}
+.tblwrap{overflow-x:auto}
+.note{font-size:12.5px;color:var(--muted);margin:18px 0 6px;line-height:1.5}
+.hidden{display:none!important}
+.err-box{background:color-mix(in srgb,var(--crit) 10%,transparent);color:var(--ink);border-radius:10px;padding:10px 12px;margin:12px 0;font-size:14px}
+</style>
+</head>
+<body>
+<header>
+  <div class="wrap">
+    <div class="hd">
+      <span style="font-size:20px" aria-hidden="true">🌐</span>
+      <h1>Radar Berita Dunia</h1>
+      <div class="upd" id="upd">Memuat…</div>
+      <button class="iconbtn" id="reload" title="Muat ulang data" aria-label="Muat ulang data">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="wrap navwrap">
+  <div class="tabrow">
+      <nav class="tabs" role="tablist">
+        <button role="tab" id="tab-news" aria-selected="true" aria-controls="view-news">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 22h16a2 2 0 0 0 2-2V4a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v16a2 2 0 0 1-2 2Zm0 0a2 2 0 0 1-2-2v-9c0-1.1.9-2 2-2h2"/><path d="M18 14h-8M15 18h-5M10 6h8v4h-8z"/></svg>
+          Berita
+        </button>
+        <button role="tab" id="tab-src" aria-selected="false" aria-controls="view-src">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 3v18h18"/><path d="M7 16v-4M12 16V8M17 16v-7"/></svg>
+          Sumber Data
+        </button>
+      </nav>
+    </div>
+</div>
+
+<main class="wrap">
+  <div id="loaderr" class="err-box hidden"></div>
+
+  <!-- ===== BERITA ===== -->
+  <section id="view-news" role="tabpanel" aria-labelledby="tab-news">
+    <div class="filters">
+      <label class="search">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="color:var(--muted)"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+        <input id="q" type="search" placeholder="Cari judul, sumber…" autocomplete="off" enterkeyhint="search">
+      </label>
+      <div class="chips" id="topicChips" aria-label="Topik"></div>
+      <div class="chips" id="tagChips" aria-label="Subtopik"></div>
+      <div class="row">
+        <select class="sel" id="typeSel" aria-label="Jenis sumber">
+          <option value="">Semua jenis sumber</option>
+          <option value="media">Media resmi</option>
+          <option value="lembaga">Lembaga resmi</option>
+          <option value="agregator">Google News</option>
+          <option value="gdelt">GDELT</option>
+          <option value="reddit">Reddit (belum terverifikasi)</option>
+        </select>
+        <label class="tog"><input type="checkbox" id="confOnly"> Hanya terkonfirmasi 2+ sumber</label>
+        <span id="srcFilter"></span>
+      </div>
+    </div>
+    <div class="count" id="count"></div>
+    <div class="list" id="list"></div>
+    <button class="more hidden" id="more">Tampilkan lebih banyak</button>
+  </section>
+
+  <!-- ===== SUMBER DATA ===== -->
+  <section id="view-src" role="tabpanel" aria-labelledby="tab-src" class="hidden">
+    <div class="tiles" id="tiles"></div>
+
+    <div class="sec">
+      <h2>Berita di dashboard per topik</h2>
+      <p class="sub">Satu berita bisa masuk lebih dari satu topik.</p>
+      <div class="panel"><div class="bars" id="topicBars"></div></div>
+    </div>
+
+    <div class="sec">
+      <h2>Per jenis sumber</h2>
+      <p class="sub">Jumlah data diambil sejak dashboard mulai berjalan.</p>
+      <div class="panel"><div class="bars" id="typeBars"></div></div>
+    </div>
+
+    <div class="sec">
+      <h2>Data per sumber</h2>
+      <p class="sub">Panjang batang = total data diambil sejak awal. Ketuk sumber untuk melihat beritanya.</p>
+      <div class="panel">
+        <div class="bars" id="srcBars"></div>
+        <details class="tbl"><summary>Lihat sebagai tabel</summary>
+          <div class="tblwrap"><table class="t" id="srcTable"></table></div>
+        </details>
+      </div>
+    </div>
+
+    <div class="sec">
+      <h2>Item baru per update</h2>
+      <p class="sub" id="histSub"></p>
+      <div class="panel">
+        <div class="hist" id="hist"></div>
+        <div class="hlab" id="hlab"></div>
+      </div>
+    </div>
+
+    <p class="note">
+      <b>Keterangan label.</b> <i>Media resmi</i> dan <i>Lembaga resmi</i> (WHO, GDACS) diambil langsung dari RSS mereka.
+      <i>Google News</i> dipakai untuk Reuters, AP, dan pencarian topik; nama media aslinya tetap ditampilkan.
+      <i>GDELT</i> memantau ribuan situs berita global; kualitas tiap situs bervariasi.
+      <i>Reddit</i> adalah sinyal diskusi, selalu ditandai <i>belum terverifikasi</i>.
+      Tanda <b>✓ terkonfirmasi</b> muncul jika minimal 2 media berbeda memberitakan hal yang sama.
+      Topik ditentukan otomatis dari kata kunci, jadi sesekali bisa meleset.
+    </p>
+  </section>
+</main>
+
+<div class="tip" id="tip" role="tooltip"></div>
+
+<script>
+(() => {
+"use strict";
+const TOPICS = {
+  ekonomi:   {label:"Saham & Ekonomi", short:"Ekonomi"},
+  cuaca:     {label:"Cuaca, Bencana & Wabah", short:"Cuaca & Wabah"},
+  teknologi: {label:"Teknologi (AI, Energi)", short:"Teknologi"},
+  lainnya:   {label:"Lainnya", short:"Lainnya"},
+};
+const TYPE_LABEL = {media:"Media resmi", lembaga:"Lembaga resmi", agregator:"Google News", gdelt:"GDELT", reddit:"Reddit"};
+const PAGE = 40;
+const $ = s => document.querySelector(s);
+const esc = s => String(s ?? "").replace(/[&<>"']/g, c => ({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const safeUrl = u => /^https?:\/\//i.test(u || "") ? u : "#";
+const nf = new Intl.NumberFormat("id-ID");
+const fmtTime = new Intl.DateTimeFormat("id-ID", {timeZone:"Asia/Jakarta", day:"numeric", month:"short", hour:"2-digit", minute:"2-digit"});
+
+let DATA = null;
+const state = {topic:"utama", tag:"", q:"", type:"", conf:false, feed:"", shown:PAGE, view:"news"};
+
+function ago(iso){
+  if(!iso) return "waktu tidak diketahui";
+  const d = new Date(iso), m = Math.round((Date.now() - d) / 60000);
+  if(m < 1) return "baru saja";
+  if(m < 60) return m + " mnt lalu";
+  const h = Math.floor(m / 60);
+  if(h < 24) return h + " jam lalu";
+  return fmtTime.format(d) + " WIB";
+}
+
+// ---------- loading ----------
+async function load(){
+  const btn = $("#reload"); btn.classList.add("spin");
+  try{
+    const r = await fetch("data.json?t=" + Date.now(), {cache:"no-store"});
+    if(!r.ok) throw new Error("HTTP " + r.status);
+    DATA = await r.json();
+    $("#loaderr").classList.add("hidden");
+    $("#upd").innerHTML = "Update " + esc(ago(DATA.generated_at)) + "<br>" + esc(fmtTime.format(new Date(DATA.generated_at))) + " WIB";
+    renderAll();
+  }catch(e){
+    const box = $("#loaderr");
+    box.textContent = "Data belum bisa dimuat (" + e.message + "). Jika baru dipasang, jalankan update pertama (Actions → Update berita → Run workflow).";
+    box.classList.remove("hidden");
+    $("#upd").textContent = "Gagal memuat";
+  }finally{ btn.classList.remove("spin"); }
+}
+
+// ---------- filtering ----------
+function baseFiltered(ignoreTopic){
+  const q = state.q.trim().toLowerCase();
+  return DATA.items.filter(it => {
+    if(state.type && it.type !== state.type) return false;
+    if(state.feed && it.feed !== state.feed) return false;
+    if(state.conf && !it.confirmed) return false;
+    if(q && !(it.title + " " + it.source + " " + (it.summary||"") + " " + it.tags.join(" ")).toLowerCase().includes(q)) return false;
+    if(!ignoreTopic){
+      if(state.topic === "utama" && !it.topics.some(t => t !== "lainnya")) return false;
+      if(state.topic !== "utama" && state.topic !== "semua" && !it.topics.includes(state.topic)) return false;
+    }
+    return true;
+  });
+}
+function filtered(){
+  let arr = baseFiltered(false);
+  if(state.tag) arr = arr.filter(it => it.tags.includes(state.tag));
+  return arr;
+}
+
+// ---------- render news ----------
+function renderChips(){
+  const pool = baseFiltered(true);
+  const cnt = {utama:0, semua:pool.length, ekonomi:0, cuaca:0, teknologi:0, lainnya:0};
+  pool.forEach(it => { it.topics.forEach(t => cnt[t]++); if(it.topics.some(t => t !== "lainnya")) cnt.utama++; });
+  const defs = [["utama","3 Topik Utama",null],["ekonomi",TOPICS.ekonomi.label,"ekonomi"],["cuaca",TOPICS.cuaca.label,"cuaca"],
+    ["teknologi",TOPICS.teknologi.label,"teknologi"],["lainnya","Lainnya","lainnya"],["semua","Semua",null]];
+  $("#topicChips").innerHTML = defs.map(([k,l,c]) =>
+    `<button class="chip" data-topic="${k}" aria-pressed="${state.topic===k}">${c?`<span class="dot" style="background:var(--t-${c})"></span>`:""}${esc(l)} <span class="n">${nf.format(cnt[k])}</span></button>`).join("");
+
+  // subtopik dari topik terpilih
+  const inTopic = baseFiltered(false);
+  const tc = {};
+  inTopic.forEach(it => it.tags.forEach(t => tc[t] = (tc[t]||0) + 1));
+  const tags = Object.entries(tc).sort((a,b) => b[1]-a[1]);
+  if(state.tag && !tc[state.tag]) state.tag = "";
+  $("#tagChips").innerHTML = tags.length ? [`<button class="chip small" data-tag="" aria-pressed="${!state.tag}">Semua subtopik</button>`]
+    .concat(tags.map(([t,n]) => `<button class="chip small" data-tag="${esc(t)}" aria-pressed="${state.tag===t}">${esc(t)} <span class="n">${n}</span></button>`)).join("") : "";
+  $("#tagChips").classList.toggle("hidden", !tags.length);
+
+  const f = state.feed && DATA.sources.find(s => s.id === state.feed);
+  $("#srcFilter").innerHTML = f ? `<span class="activef">Sumber: ${esc(f.name)} <button data-clearfeed aria-label="Hapus filter sumber">×</button></span>` : "";
+}
+
+function card(it){
+  const tc = `var(--t-${it.primary})`;
+  const topics = it.topics.map(t => `<span class="topic"><span class="dot" style="background:var(--t-${t})"></span>${esc(TOPICS[t].short)}</span>`).join("");
+  const tags = it.tags.map(t => `<span class="tag">${esc(t)}</span>`).join("");
+  let badge = "";
+  if(it.type === "reddit") badge = `<span class="badge warn">⚠ Belum terverifikasi</span>`;
+  else if(it.confirmed) badge = `<span class="badge ok">✓ Terkonfirmasi ${it.outlets || 2} media</span>`;
+  const via = it.type === "agregator" ? "via Google News" : it.type === "gdelt" ? "via GDELT" : "";
+  const ext = it.ext ? ` <a class="extl" href="${esc(safeUrl(it.ext))}" target="_blank" rel="noopener noreferrer">↗ artikel asli</a>` : "";
+  return `<article class="card" style="--tc:${tc}">
+    <div class="meta"><span class="src">${esc(it.source)}</span>${via?`<span>${via}</span>`:""}<span class="typ">${esc(TYPE_LABEL[it.type])}</span><span>· ${esc(ago(it.published))}</span></div>
+    <h3><a href="${esc(safeUrl(it.link))}" target="_blank" rel="noopener noreferrer">${esc(it.title)}</a></h3>
+    ${it.summary ? `<p class="sum">${esc(it.summary)}</p>` : ""}
+    <div class="tags">${topics}${tags}${badge}${ext}</div>
+    ${it.also.length ? `<div class="also">Juga diberitakan: ${esc(it.also.join(", "))}</div>` : ""}
+  </article>`;
+}
+
+function renderNews(){
+  renderChips();
+  const arr = filtered();
+  $("#count").textContent = nf.format(arr.length) + " berita" + (DATA.window_hours ? ` · ${DATA.window_hours} jam terakhir` : "");
+  $("#list").innerHTML = arr.length ? arr.slice(0, state.shown).map(card).join("")
+    : `<div class="empty">Tidak ada berita yang cocok dengan filter ini.</div>`;
+  $("#more").classList.toggle("hidden", arr.length <= state.shown);
+}
+
+// ---------- render stats ----------
+function bars(el, rows, opts = {}){
+  const max = Math.max(1, ...rows.map(r => r.value));
+  el.innerHTML = rows.map(r => `<div class="bar${r.click ? " click" : ""}" ${r.click ? `data-feed="${esc(r.click)}" role="button" tabindex="0"` : ""} data-tip="${esc(r.tip || "")}">
+      <div class="lbl">${r.pre || ""}<span class="name">${esc(r.label)}</span>${r.post || ""}</div>
+      <div class="val">${r.valText ?? nf.format(r.value)}</div>
+      <div class="track"><div class="fill" style="width:${(r.value / max * 100).toFixed(1)}%;${r.color ? `background:${r.color}` : ""}"></div></div>
+    </div>`).join("");
+}
+
+function renderStats(){
+  const S = DATA.sources, T = DATA.totals;
+  const ok = S.filter(s => s.status === "ok").length;
+  const since = DATA.started_at ? fmtTime.format(new Date(DATA.started_at)) : "-";
+  $("#tiles").innerHTML = [
+    ["Berita di dashboard", nf.format(T.kept), `${DATA.window_hours} jam terakhir, sudah tanpa duplikat`],
+    ["Total data diambil", nf.format(T.cumulative), "sejak " + since + " WIB"],
+    ["Sumber aktif", `${ok}/${S.length}`, S.length - ok ? `${S.length - ok} sumber gagal saat update terakhir` : "semua sumber berhasil"],
+    ["Update terakhir", ago(DATA.generated_at), `${nf.format(T.new_now)} item baru · ${nf.format(T.fetched_now)} diambil`],
+  ].map(([k,v,s]) => `<div class="tile"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div><div class="s">${esc(s)}</div></div>`).join("");
+
+  // topik
+  const tcount = {ekonomi:0, cuaca:0, teknologi:0, lainnya:0};
+  DATA.items.forEach(it => it.topics.forEach(t => tcount[t]++));
+  bars($("#topicBars"), Object.keys(TOPICS).map(t => ({
+    label: TOPICS[t].label, value: tcount[t], color: `var(--t-${t})`,
+    pre: `<span class="dot" style="width:9px;height:9px;border-radius:50%;flex:none;background:var(--t-${t})"></span>`,
+    tip: `${TOPICS[t].label}: ${nf.format(tcount[t])} berita`
+  })));
+
+  // jenis
+  const byType = {};
+  S.forEach(s => { const o = byType[s.type] ||= {cum:0, kept:0, n:0}; o.cum += s.cumulative; o.kept += s.kept; o.n++; });
+  bars($("#typeBars"), Object.keys(TYPE_LABEL).filter(t => byType[t]).map(t => ({
+    label: `${TYPE_LABEL[t]} (${byType[t].n} sumber)`, value: byType[t].cum,
+    valText: `${nf.format(byType[t].cum)} <span style="color:var(--muted)">· ${nf.format(byType[t].kept)} tampil</span>`,
+    tip: `${TYPE_LABEL[t]}: ${nf.format(byType[t].cum)} total diambil, ${nf.format(byType[t].kept)} di dashboard`
+  })).sort((a,b) => b.value - a.value));
+
+  // per sumber, dikelompokkan per jenis
+  const el = $("#srcBars"); el.innerHTML = "";
+  Object.keys(TYPE_LABEL).forEach(t => {
+    const rows = S.filter(s => s.type === t).sort((a,b) => b.cumulative - a.cumulative);
+    if(!rows.length) return;
+    const g = document.createElement("div"); g.className = "grp"; g.textContent = TYPE_LABEL[t]; el.appendChild(g);
+    const box = document.createElement("div"); box.className = "bars"; el.appendChild(box);
+    bars(box, rows.map(s => ({
+      label: s.name, value: s.cumulative, click: s.id,
+      post: s.status === "ok" ? `<span class="st ok" title="Berhasil">● ok</span>` : `<span class="st err" title="${esc(s.error||"")}">✕ gagal</span>`,
+      valText: `${nf.format(s.cumulative)} <span style="color:var(--muted)">· ${nf.format(s.kept)} tampil</span>`,
+      tip: `${s.name}\nTotal diambil: ${nf.format(s.cumulative)}\nUpdate terakhir: ${nf.format(s.fetched)} item (${nf.format(s.new)} baru)\nTampil di dashboard: ${nf.format(s.kept)}` + (s.error ? `\nError: ${s.error}` + (s.reused ? ` (memakai ${s.reused} item sebelumnya)` : "") : "")
+    })));
+  });
+  $("#srcTable").innerHTML = `<thead><tr><th>Sumber</th><th>Jenis</th><th>Status</th><th class="n">Total diambil</th><th class="n">Update terakhir</th><th class="n">Item baru</th><th class="n">Tampil</th></tr></thead><tbody>` +
+    [...S].sort((a,b) => b.cumulative - a.cumulative).map(s => `<tr><td>${esc(s.name)}</td><td>${esc(TYPE_LABEL[s.type])}</td><td>${s.status==="ok"?"✓ ok":"✕ "+esc(s.error||"gagal")}</td><td class="n">${nf.format(s.cumulative)}</td><td class="n">${nf.format(s.fetched)}</td><td class="n">${nf.format(s.new)}</td><td class="n">${nf.format(s.kept)}</td></tr>`).join("") + "</tbody>";
+
+  // riwayat
+  const runs = (DATA.runs || []).slice(-48);
+  const mx = Math.max(1, ...runs.map(r => r.new));
+  $("#hist").innerHTML = runs.map(r => `<div style="height:${Math.max(1, r.new / mx * 100)}%" data-tip="${esc(fmtTime.format(new Date(r.t)) + " WIB\n" + nf.format(r.new) + " item baru\n" + r.ok + " sumber ok, " + r.err + " gagal")}"></div>`).join("");
+  $("#histSub").textContent = runs.length ? `${runs.length} update terakhir · tertinggi ${nf.format(mx)} item` : "Belum ada riwayat.";
+  $("#hlab").innerHTML = runs.length ? `<span>${esc(fmtTime.format(new Date(runs[0].t)))}</span><span>${esc(fmtTime.format(new Date(runs[runs.length-1].t)))}</span>` : "";
+}
+
+function renderAll(){ renderNews(); renderStats(); }
+
+// ---------- events ----------
+function setView(v){
+  state.view = v;
+  $("#view-news").classList.toggle("hidden", v !== "news");
+  $("#view-src").classList.toggle("hidden", v !== "src");
+  $("#tab-news").setAttribute("aria-selected", v === "news");
+  $("#tab-src").setAttribute("aria-selected", v === "src");
+  window.scrollTo({top:0});
+}
+$("#tab-news").onclick = () => setView("news");
+$("#tab-src").onclick = () => setView("src");
+$("#reload").onclick = load;
+$("#topicChips").onclick = e => { const b = e.target.closest("[data-topic]"); if(!b) return; state.topic = b.dataset.topic; state.tag = ""; state.shown = PAGE; renderNews(); };
+$("#tagChips").onclick = e => { const b = e.target.closest("[data-tag]"); if(!b) return; state.tag = b.dataset.tag; state.shown = PAGE; renderNews(); };
+$("#srcFilter").onclick = e => { if(e.target.closest("[data-clearfeed]")){ state.feed = ""; state.shown = PAGE; renderNews(); } };
+let qt; $("#q").oninput = e => { clearTimeout(qt); qt = setTimeout(() => { state.q = e.target.value; state.shown = PAGE; renderNews(); }, 150); };
+$("#typeSel").onchange = e => { state.type = e.target.value; state.shown = PAGE; renderNews(); };
+$("#confOnly").onchange = e => { state.conf = e.target.checked; state.shown = PAGE; renderNews(); };
+$("#more").onclick = () => { state.shown += PAGE; renderNews(); };
+function openFeed(id){ state.feed = id; state.topic = "semua"; state.tag = ""; state.type = ""; $("#typeSel").value = ""; state.shown = PAGE; setView("news"); renderNews(); }
+$("#srcBars").addEventListener("click", e => { const b = e.target.closest("[data-feed]"); if(b) openFeed(b.dataset.feed); });
+$("#srcBars").addEventListener("keydown", e => { const b = e.target.closest("[data-feed]"); if(b && (e.key === "Enter" || e.key === " ")){ e.preventDefault(); openFeed(b.dataset.feed); } });
+
+// tooltip (hover di desktop, ketuk di HP)
+const tip = $("#tip");
+function showTip(el, x, y){
+  const t = el.getAttribute("data-tip"); if(!t){ tip.style.display = "none"; return; }
+  tip.innerHTML = esc(t).replace(/\n/g, "<br>"); tip.style.display = "block";
+  const w = tip.offsetWidth, h = tip.offsetHeight;
+  tip.style.left = Math.min(window.innerWidth - w - 8, Math.max(8, x + 12)) + "px";
+  tip.style.top = Math.max(8, y - h - 12) + "px";
+}
+document.addEventListener("pointermove", e => { const el = e.target.closest("#view-src [data-tip]"); if(el && e.pointerType === "mouse") showTip(el, e.clientX, e.clientY); else if(e.pointerType === "mouse") tip.style.display = "none"; });
+document.addEventListener("pointerdown", e => { if(e.pointerType === "mouse") return; const el = e.target.closest("#hist [data-tip]"); if(el) showTip(el, e.clientX, e.clientY); else tip.style.display = "none"; });
+window.addEventListener("scroll", () => tip.style.display = "none", {passive:true});
+
+load();
+setInterval(load, 5 * 60 * 1000);   // cek data baru tiap 5 menit
+document.addEventListener("visibilitychange", () => { if(!document.hidden && DATA && Date.now() - new Date(DATA.generated_at) > 10*60*1000) load(); });
+})();
+</script>
+</body>
+</html>
