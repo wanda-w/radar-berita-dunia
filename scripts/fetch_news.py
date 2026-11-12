@@ -277,19 +277,30 @@ def parse_feed(feed, raw):
     return out
 
 
-def http_get(url, timeout=25):
+def http_get(url, timeout=25, retries=0, backoff=15):
+    """GET dengan retry khusus untuk 429/503 (pembatasan laju); hormati header Retry-After."""
     req = urllib.request.Request(url, headers={
         "User-Agent": UA,
         "Accept": "application/rss+xml, application/atom+xml, application/xml, application/json;q=0.9, */*;q=0.8",
     })
-    with urllib.request.urlopen(req, timeout=timeout) as r:
-        return r.read()
+    for attempt in range(retries + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=timeout) as r:
+                return r.read()
+        except urllib.error.HTTPError as e:
+            if e.code not in (429, 503) or attempt == retries:
+                raise
+            try:
+                wait = min(int(e.headers.get("Retry-After", "")), 90)
+            except ValueError:
+                wait = backoff * (attempt + 1)
+            time.sleep(wait)
 
 
 def fetch_feed(feed):
     t0 = time.time()
     try:
-        items = parse_feed(feed, http_get(feed["url"]))
+        items = parse_feed(feed, http_get(feed["url"], retries=3 if feed["type"] == "reddit" else 1, backoff=20))
         return feed, items, None, int((time.time() - t0) * 1000)
     except Exception as e:  # noqa: BLE001 - satu sumber gagal tidak boleh menghentikan semua
         return feed, [], f"{type(e).__name__}: {str(e)[:160]}", int((time.time() - t0) * 1000)
@@ -301,7 +312,7 @@ def fetch_gdelt(q):
     url = "https://api.gdeltproject.org/api/v2/doc/doc?" + urllib.parse.urlencode(params)
     feed = dict(id=q["id"], name=q["name"], type="gdelt", hint=q["hint"], url=url)
     try:
-        raw = http_get(url, timeout=40).decode("utf-8", "replace")
+        raw = http_get(url, timeout=40, retries=3, backoff=20).decode("utf-8", "replace")
         try:
             data = json.loads(raw, strict=False)
         except json.JSONDecodeError:
@@ -413,12 +424,27 @@ def main():
 
     print(f"Mengambil {len(FEEDS)} feed RSS + {len(GDELT_QUERIES)} kueri GDELT …")
     results = []
-    with cf.ThreadPoolExecutor(max_workers=8) as ex:
-        results.extend(ex.map(fetch_feed, FEEDS))
-    for i, q in enumerate(GDELT_QUERIES):
-        if i:
-            time.sleep(6)  # GDELT membatasi ~1 permintaan per 5 detik
-        results.append(fetch_gdelt(q))
+    normal = [f for f in FEEDS if f["type"] != "reddit"]
+    reddit = [f for f in FEEDS if f["type"] == "reddit"]
+
+    def run_slow():
+        # Reddit dan GDELT membatasi laju per IP (HTTP 429): satu per satu dengan jeda panjang
+        out = []
+        for i, f in enumerate(reddit):
+            if i:
+                time.sleep(8)
+            out.append(fetch_feed(f))
+        time.sleep(8)
+        for i, q in enumerate(GDELT_QUERIES):
+            if i:
+                time.sleep(10)
+            out.append(fetch_gdelt(q))
+        return out
+
+    with cf.ThreadPoolExecutor(max_workers=9) as ex:
+        slow = ex.submit(run_slow)
+        results.extend(ex.map(fetch_feed, normal))
+        results.extend(slow.result())
 
     # item lama dari sumber yang gagal dipakai ulang supaya dashboard tidak bolong
     prev_items = {}
